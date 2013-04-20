@@ -7,7 +7,8 @@ var app = {
     },
     onDeviceReady: function() {
         app.receivedEvent('deviceready');
-        nfc.addNdefListener(app.onndef);
+        cameraLabel.addEventListener('touchstart', app.takePicture, false);
+        //nfc.addNdefListener(app.onndef);
     },
     // Update DOM on a Received Event
     receivedEvent: function(id) {
@@ -22,5 +23,31 @@ var app = {
     },
     onndef: function(nfcEvent) {
         alert(JSON.stringify(nfcEvent.tag));
+    },
+    takePicture: function() {
+        navigator.camera.getPicture(
+            function(imageURI) { // success
+                //image.src = imageURI;
+                app.beam(imageURI);
+            },
+            function(error) { // failure
+                console.log("error");
+            },
+            { // options
+                quality: 50,
+                destinationType: navigator.camera.DestinationType.FILE_URI,
+                targetWidth: 320,
+                targetHeight: 320,
+                allowEdit: true,
+                saveToPhotoAlbum: false
+            }
+        );
+    },
+    beam: function (imageURI) {
+        nfc.beam(
+            imageURI,
+            function() {console.log("sharing"); },
+            function(error) { alert(JSON.stringify(error)); }
+        );
     }
 };

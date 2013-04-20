@@ -385,6 +385,12 @@ var nfc = {
         cordova.exec(win, fail, "NfcPlugin", "unshareTag", []);
     },
 
+    // URI as a string
+    // Needs to be a file:/// or
+    beam: function(uri, win, fail) {  // TODO should take an array of Uri
+        cordova.exec(win, fail, "NfcPlugin", "beam", [uri]);
+    },
+
     erase: function (win, fail) {
         cordova.exec(win, fail, "NfcPlugin", "eraseTag", [[]]);
     },

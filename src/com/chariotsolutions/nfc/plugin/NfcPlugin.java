@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentFilter.MalformedMimeTypeException;
+import android.net.Uri;
 import android.nfc.*;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NdefFormatable;
@@ -30,6 +31,7 @@ public class NfcPlugin extends CordovaPlugin {
     private static final String ERASE_TAG = "eraseTag";
     private static final String SHARE_TAG = "shareTag";
     private static final String UNSHARE_TAG = "unshareTag";
+    private static final String BEAM = "beam";
     private static final String INIT = "init";
 
     private static final String NDEF = "ndef";
@@ -87,6 +89,9 @@ public class NfcPlugin extends CordovaPlugin {
         } else if (action.equalsIgnoreCase(UNSHARE_TAG)) {
             unshareTag(callbackContext);
 
+        } else if (action.equalsIgnoreCase(BEAM)) {
+            beam(data, callbackContext);
+
         } else if (action.equalsIgnoreCase(INIT)) {
             init(callbackContext);
 
@@ -128,6 +133,28 @@ public class NfcPlugin extends CordovaPlugin {
         p2pMessage = null;
         stopNdefPush();
         callbackContext.success();
+    }
+
+    // TODO need the URIs pushed in here!
+    private void beam(JSONArray data, CallbackContext callbackContext) throws JSONException {  // requires API 16
+
+        String uriString = data.getString(0); // TODO should handle array
+        Log.d(TAG, "Attempting to beam Uri");
+        Log.d(TAG, uriString);
+
+        NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(getActivity());
+        Log.d(TAG, "Got NFC Adapter");
+
+        if (nfcAdapter == null) {
+            callbackContext.error(STATUS_NO_NFC);
+        } else if (!nfcAdapter.isNdefPushEnabled()) { // requires API 17
+            callbackContext.error(STATUS_NDEF_PUSH_DISABLED);
+        } else {
+            Log.d(TAG, "Setting");
+            Uri[] uris = { Uri.parse(uriString) };
+            nfcAdapter.setBeamPushUris(uris, getActivity());
+            callbackContext.success(); // TODO, noop and hold callback for when message is sent
+        }
     }
 
     private void init(CallbackContext callbackContext) {
@@ -250,7 +277,7 @@ public class NfcPlugin extends CordovaPlugin {
             public void run() {
                 NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(getActivity());
 
-                if (nfcAdapter != null && getActivity().isFinishing() == false) {
+                if (nfcAdapter != null && !getActivity().isFinishing()) {
                     nfcAdapter.enableForegroundDispatch(getActivity(), getPendingIntent(), getIntentFilters(), getTechLists());
 
                     if (p2pMessage != null) {
