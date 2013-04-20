@@ -6,22 +6,10 @@ var app = {
         document.addEventListener('deviceready', this.onDeviceReady, false);
     },
     onDeviceReady: function() {
-        app.receivedEvent('deviceready');
         beamCameraLabel.addEventListener('touchstart', app.takePicture, false);
         beamAlbumLabel.addEventListener('touchstart', app.choosePicture, false);
         beamTextLabel.addEventListener('touchstart', app.beamText, false);
         app.writeSampleTextFile();
-    },
-    // Update DOM on a Received Event
-    receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
-
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
-
-        console.log('Received Event: ' + id);
     },
     takePicture: function() {
         navigator.camera.getPicture(
