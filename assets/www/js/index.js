@@ -7,11 +7,10 @@ var app = {
     },
     onDeviceReady: function() {
         app.receivedEvent('deviceready');
-        cameraLabel.addEventListener('touchstart', app.takePicture, false);
+        beamCameraLabel.addEventListener('touchstart', app.takePicture, false);
+        beamAlbumLabel.addEventListener('touchstart', app.choosePicture, false);
         beamTextLabel.addEventListener('touchstart', app.beamText, false);
-        beamLogoLabel.addEventListener('touchstart', app.beamLogo, false);
         app.writeSampleTextFile();
-        //nfc.addNdefListener(app.onndef);
     },
     // Update DOM on a Received Event
     receivedEvent: function(id) {
@@ -24,13 +23,9 @@ var app = {
 
         console.log('Received Event: ' + id);
     },
-    onndef: function(nfcEvent) {
-        alert(JSON.stringify(nfcEvent.tag));
-    },
     takePicture: function() {
         navigator.camera.getPicture(
             function(imageURI) { // success
-                //image.src = imageURI;
                 app.beam(imageURI);
                 alert("Tap another Android phone to beam photo.");
             },
@@ -40,18 +35,30 @@ var app = {
             { // options
                 quality: 50,
                 destinationType: navigator.camera.DestinationType.FILE_URI,
-                targetWidth: 320,
-                targetHeight: 320,
-                allowEdit: true,
                 saveToPhotoAlbum: false
+            }
+        );
+    },
+    choosePicture: function() {
+        navigator.camera.getPicture(
+            function(imageURI) { // success
+                app.beam(imageURI);
+                alert("Tap another Android phone to beam selected photo.");
+            },
+            function(error) { // failure
+                console.log("error");
+            },
+            { // options
+                sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
+                destinationType: navigator.camera.DestinationType.FILE_URI
             }
         );
     },
     beamText: function () {
         nfc.beam(
-            // Doesn't work "file:///android_asset/www/index.html",
+            // "file:///android_asset/www/index.html", Doesn't work
             "file:///mnt/sdcard/foo.txt",
-            function() {console.log("sharing"); },
+            function() { alert("Tap another Android phone to transfer the sample text file."); },
             function(error) { alert(JSON.stringify(error)); }
         );
     },
@@ -84,7 +91,7 @@ var app = {
         }
 
         function gotFileWriter(writer) {
-            writer.write("This is a sample file for nfc beam demo.\n");
+            writer.write("This is a sample file for the nfc beam demo.\n");
         }
 
         function fail(error) {
