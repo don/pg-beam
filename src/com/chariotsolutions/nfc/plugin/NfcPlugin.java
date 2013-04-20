@@ -13,6 +13,7 @@ import android.os.Parcelable;
 import android.util.Log;
 import org.apache.cordova.api.CallbackContext;
 import org.apache.cordova.api.CordovaPlugin;
+import org.apache.cordova.api.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -135,8 +136,14 @@ public class NfcPlugin extends CordovaPlugin {
         callbackContext.success();
     }
 
-    // TODO need the URIs pushed in here!
-    private void beam(JSONArray data, CallbackContext callbackContext) throws JSONException {  // requires API 16
+    // note: probably need a way to undo this too
+    private void beam(JSONArray data, final CallbackContext callbackContext) throws JSONException {  // requires API 16
+
+        // note that this is very similar to share
+        // except
+        // * it sends uris
+        // * it automatically handles handover
+        // * it requires handover to work
 
         String uriString = data.getString(0); // TODO should handle array
         Log.d(TAG, "Attempting to beam Uri");
@@ -153,7 +160,23 @@ public class NfcPlugin extends CordovaPlugin {
             Log.d(TAG, "Setting");
             Uri[] uris = { Uri.parse(uriString) };
             nfcAdapter.setBeamPushUris(uris, getActivity());
-            callbackContext.success(); // TODO, noop and hold callback for when message is sent
+
+            callbackContext.success();
+
+            /*
+            // this will call callback once when message is ready to share
+            // and another time when a peer connects
+            PluginResult result = new PluginResult(PluginResult.Status.OK);
+            result.setKeepCallback(true);
+            callbackContext.sendPluginResult(result);
+
+            nfcAdapter.setOnNdefPushCompleteCallback(new NfcAdapter.OnNdefPushCompleteCallback() {
+                @Override
+                public void onNdefPushComplete(NfcEvent event) {
+                    callbackContext.success();
+                }
+            }, getActivity());
+            */
         }
     }
 
